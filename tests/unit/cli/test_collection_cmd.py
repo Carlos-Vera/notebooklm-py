@@ -149,6 +149,23 @@ def test_collection_add_resolves_notebooks(runner, mock_auth, mock_fetch_tokens)
     client.collections.add_notebooks.assert_awaited_once_with("colaaa111", ["nb_123"])
 
 
+def test_collection_add_multi_notebook_resolves_with_one_list(
+    runner, mock_auth, mock_fetch_tokens
+) -> None:
+    # The whole point of _resolve_notebook_ids: N refs → ONE notebooks.list().
+    collections = [Collection(id="colaaa111", name="Research")]
+    client = _client_with_collections(collections=collections)
+    client.collections.add_notebooks = AsyncMock(
+        return_value=Collection(id="colaaa111", name="Research", notebook_ids=["nb_123", "nb_456"])
+    )
+
+    result = _run(runner, ["collection", "add", "colaaa111", "nb_123", "nb_456"], client)
+
+    assert result.exit_code == 0, result.output
+    client.notebooks.list.assert_awaited_once()  # not once-per-ref
+    client.collections.add_notebooks.assert_awaited_once_with("colaaa111", ["nb_123", "nb_456"])
+
+
 def test_collection_remove_human(runner, mock_auth, mock_fetch_tokens) -> None:
     collections = [Collection(id="colaaa111", name="Research", notebook_ids=["nb_123"])]
     client = _client_with_collections(collections=collections)

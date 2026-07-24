@@ -40,7 +40,7 @@ from .auth_runtime import resolve_client_factory, with_client
 from .error_handler import output_error
 from .options import json_option
 from .rendering import cli_print, json_output_response, render_list
-from .resolve import resolve_notebook_id
+from .resolve import resolve_partial_id_in_items
 from .services.confirming_mutation import MutationPlan, run_confirmed_mutation
 from .services.listing import ListSpec, prepare_list
 
@@ -72,8 +72,24 @@ def _collection_payload(collection: Collection) -> dict[str, Any]:
 
 
 async def _resolve_notebook_ids(client, refs, *, json_output: bool) -> list[str]:
-    """Resolve each (possibly partial) notebook ref to a full notebook id."""
-    return [await resolve_notebook_id(client, ref, json_output=json_output) for ref in refs]
+    """Resolve each (possibly partial) notebook ref to a full notebook id.
+
+    Fetches ``notebooks.list()`` **once** and resolves every ref against that
+    shared snapshot (via the same ``resolve_partial_id_in_items`` core the single
+    ``resolve_notebook_id`` uses), so ``collection add/remove C nb1 nb2 nb3`` does
+    one account-level LIST rather than one per ref.
+    """
+    notebooks = await client.notebooks.list()
+    return [
+        resolve_partial_id_in_items(
+            ref,
+            notebooks,
+            entity_name="notebook",
+            list_command="list",
+            json_output=json_output,
+        )
+        for ref in refs
+    ]
 
 
 @click.group()
