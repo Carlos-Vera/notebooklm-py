@@ -275,9 +275,16 @@ class CollectionsAPI:
         **Wire-shape caveat:** the un-assign fieldmask is an INFERRED symmetric
         variant of the captured add payload (see
         :func:`~notebooklm._collection.params.build_update_collection_notebooks_params`),
-        not yet confirmed on the wire. Classified ``IDEMPOTENT_SET_OP`` (mirrors
-        the confirmed label ``remove_sources``: removing an absent member is a
-        safe no-op), so a re-run is safe.
+        not yet confirmed on the wire. The collection membership fieldmask has its
+        own two-group ``[add_group, remove_group]`` shape — structurally DIFFERENT
+        from the label single combined group (``name_emoji, sources_add,
+        sources_remove``). Because the shape is unverified, it is conservatively
+        classified ``NON_IDEMPOTENT_NO_RETRY`` (mirroring the ``DELETE_LABEL``
+        precedent for an unconfirmed replay effect) — a mid-loop failure surfaces
+        rather than blind-retrying an unknown side effect; re-issue with the
+        remaining ids. Downgrade to the retry-safe ``IDEMPOTENT_SET_OP`` (by analogy
+        to the confirmed label ``remove_sources``) only once
+        ``tests/e2e/test_collections.py`` confirms the wire shape.
         """
         if not notebook_ids:
             raise ValueError("remove_notebooks requires at least one notebook id")

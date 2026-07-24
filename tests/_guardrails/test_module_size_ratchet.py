@@ -74,7 +74,9 @@ ALLOWLISTED_CEILINGS: dict[str, int] = {
     # the public-surface manifest pin every class to ``notebooklm.exceptions``, so
     # the classes cannot move to sibling files without forking that home. Bumped
     # 1512 -> 1524 for ``MissingDependencyError`` (the new DEPENDENCY category's
-    # public exception; #1959) — an irreducible addition to this home.
+    # public exception; #1959), then 1524 -> 1577 for ``CollectionError`` +
+    # ``CollectionNotFoundError`` (the Collections domain; #2006) — both
+    # irreducible additions to this home.
     "exceptions.py": 1577,
     # ``mcp/tools/sources.py`` was allowlisted at 1020 (over the 1000-line budget after
     # #1871's shared source-policy wiring + the await_upload era). #1890 folded
