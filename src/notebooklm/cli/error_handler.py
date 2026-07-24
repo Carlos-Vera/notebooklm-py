@@ -72,6 +72,7 @@ _NOT_FOUND_ID_ATTRS = (
     "note_id",
     "mind_map_id",
     "label_id",
+    "collection_id",
 )
 
 
