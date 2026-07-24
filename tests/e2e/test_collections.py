@@ -105,12 +105,16 @@ class TestCollectionDelete:
     async def test_delete_removes_collection(self, client):
         """``delete`` removes the collection from ``list``."""
         collection = await client.collections.create("nbpy-e2e Temporary")
+        try:
+            result = await client.collections.delete(collection.id)
+            assert result is None
 
-        result = await client.collections.delete(collection.id)
-        assert result is None
-
-        collections = await client.collections.list()
-        assert collection.id not in {item.id for item in collections}
+            collections = await client.collections.list()
+            assert collection.id not in {item.id for item in collections}
+        finally:
+            # Idempotent: a no-op if the delete above already succeeded, but
+            # ensures an early-failing assertion never orphans the collection.
+            await client.collections.delete(collection.id)
 
     @pytest.mark.asyncio
     @pytest.mark.e2e
